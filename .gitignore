@@ -1,0 +1,7 @@
+/__pycache__/
+/.vscode/
+*.png
+*.jpg
+*.gif
+*.bak
+config.json
