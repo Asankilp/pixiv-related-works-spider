@@ -81,6 +81,7 @@ def replacesym(zifu):
     result = result.replace('\"', '')
     return result
 ########################################主体########################################
+print(f"当前保存路径:{str(showdir)}")
 reqpid = int(input("作品PID:"))
 limit = int(input("下载数量:") or 18)
 resp = json.loads(urllib.request.urlopen(f"https://www.pixiv.net/ajax/illust/{reqpid}/recommend/init?limit={limit}&lang=zh").read().decode("utf-8"))
