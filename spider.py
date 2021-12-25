@@ -4,7 +4,7 @@ import urllib
 import requests
 import urllib.request
 ###############################定义函数和初始化############################################
-config = ["{\"force_requests\": false, \"save_dir\": \"\"}"]
+config = ["{\"force_requests\": false, \"save_dir\": \"\", \"request_cookies\":\"\"}"]
 if os.path.exists("config.json") == False:
     print("找不到config.json。正在创建...")
     with open("config.json", mode="w") as newconf:
@@ -14,6 +14,7 @@ try:
         a = json.load(conf)
         force_requests = a["force_requests"]
         setudir = a["save_dir"]
+        request_cookies = a["request_cookies"]
 except:
     print("无法读取config.json.")
     pass
@@ -21,6 +22,8 @@ if setudir == "":
     showdir = os.getcwd()
 else:
     showdir = setudir
+if request_cookies == "":
+    print("\033[33m未读取到Cookies。\033[0m\n为获取到R-18作品的相关作品，需要在config.json提供启用了显示R-18作品的账户的Cookies。")
 def download_img(dlurl): #定义下载函数
     global setudir
     extname = "." + dlurl.split(".").pop()
@@ -28,7 +31,7 @@ def download_img(dlurl): #定义下载函数
     setupath = os.path.join(setudir, setuname)
     if usecurl == True:
         if os.path.exists(setupath) is False:
-            if str(setudir) is None:#如果savedir.txt没内容，则取默认值
+            if str(setudir) is None:
                 setudir = "./"
             print("\033[33m下载中...\033[0m")
             if os.system("curl "+dlurl+" -o "+"\""+os.path.join(setudir, setuname)+"\""+" -#") == 0:
@@ -45,7 +48,7 @@ def download_img(dlurl): #定义下载函数
         print("状态码：", r.status_code) # 返回状态码
         if r.status_code == 200:
             print("\033[33m下载中...\033[0m")
-            if str(setudir) is None:#如果savedir.txt没内容，则取默认值
+            if str(setudir) is None:
                 setudir = "./"
             if os.path.exists(setupath) is False:
                 open(os.path.join(setudir, setuname), 'wb').write(r.content) # 将内容写入图片
@@ -81,10 +84,13 @@ def replacesym(zifu):
     result = result.replace('\"', '')
     return result
 ########################################主体########################################
+piccount = 0
 print(f"当前保存路径:{str(showdir)}")
 reqpid = int(input("作品PID:"))
 limit = int(input("下载数量:") or 18)
-resp = json.loads(urllib.request.urlopen(f"https://www.pixiv.net/ajax/illust/{reqpid}/recommend/init?limit={limit}&lang=zh").read().decode("utf-8"))
+headers = {'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6', 'Cookie': request_cookies}
+add = urllib.request.Request(f"https://www.pixiv.net/ajax/illust/{reqpid}/recommend/init?limit={limit}&lang=zh", headers=headers)
+resp = json.loads(urllib.request.urlopen(url=add).read().decode("utf-8"))
 for illust in resp["body"]["illusts"]:
     try:
         pid = illust["id"]
@@ -96,5 +102,7 @@ for illust in resp["body"]["illusts"]:
         tags = illust["tags"]
     except:
         continue
+    piccount = piccount + 1
+    print(f"当前为{piccount}/{limit}张图片")
     print(f"PID:{pid} 标题:{title}\n标签:{tags}\nURL:{url}")
     download_img(url)
